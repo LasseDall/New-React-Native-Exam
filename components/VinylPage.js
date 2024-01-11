@@ -8,10 +8,10 @@ import { styles } from '../styles.js';
 
 const VinylPage = ({ navigation, route }) => {
     const title = route.params?.title;
+    const artist = route.params?.artist;
     const id = route.params?.id;
     const uid = route.params?.uid;
     const email = route.params?.email;
-    const updateVinyl = route.params?.updateVinyl;
     const [newTitle, setNewTitle] = useState('');
     const [newArtist, setNewArtist] = useState('');
     const [newYear, setNewYear] = useState('');
@@ -93,6 +93,7 @@ const VinylPage = ({ navigation, route }) => {
     return (
       <ScrollView>
       <View style={styles.container}>
+        <Text style={styles.heading}>{artist}</Text>
         <Text style={styles.heading}>{title}</Text>
         <Image style={styles.vinylImg} source={{ uri:imagePath }}/>
         <TextInput

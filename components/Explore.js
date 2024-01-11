@@ -7,10 +7,12 @@ import { collection, addDoc } from 'firebase/firestore';
 const Explore = ({ navigation, route }) => {
     const [albums, setAlbums] = useState([]);
     const uid = route.params?.uid;
+    const [page, setPage] = useState(1);
+    const [totalAlbums, setTotalAlbums] = useState(10);
   
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://172.20.10.4:8080/api/albums`);
+        const response = await fetch(`http://172.20.10.6:8080/api/albums?page=${page}`);
   
         if (!response.ok) {
           const result = await response.json();
@@ -18,6 +20,7 @@ const Explore = ({ navigation, route }) => {
         } else {
           const result = await response.json();
           setAlbums(result.data.albums);
+          setTotalAlbums(result.data.totalAlbums);
         }
       } catch (error) {
         console.log(error.message);
@@ -27,6 +30,10 @@ const Explore = ({ navigation, route }) => {
     useEffect(() => {
       fetchData();
     }, []);
+
+    useEffect(() => {
+        fetchData();
+      }, [page]);
   
     const renderItem = ({ item }) => (
       <View style={styles.exploreAlbum}>
@@ -52,6 +59,20 @@ const Explore = ({ navigation, route }) => {
         console.log(err);
       }
     };
+
+    function handlePageShift(shift) {
+        if (shift === "pre") {
+            if (page > 1) {
+                setPage(Number(page) - 1);
+            }
+        } else {
+            const totalPages = Number(totalAlbums)/10;
+            if (page < totalPages) {
+                const nextPage = Number(page) + 1;
+                setPage(nextPage);
+            }
+        }
+    }
   
     return (
       <View style={styles.container}>
@@ -61,6 +82,19 @@ const Explore = ({ navigation, route }) => {
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
         />
+        <View style={styles.buttonContainer}>
+            <TouchableOpacity 
+                style={styles.pageButton}
+                onPress={async () => await handlePageShift("pre")}>
+                <Text style={styles.buttonText}>Privious page</Text>
+            </TouchableOpacity>
+            <Text style={styles.page}>{page}</Text>
+            <TouchableOpacity 
+                style={styles.pageButton}
+                onPress={async () => await handlePageShift("next")}>
+                <Text style={styles.buttonText}>Next page</Text>
+            </TouchableOpacity>
+        </View>
       </View>
     );
   };

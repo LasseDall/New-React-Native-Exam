@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, FlatList, View, Image } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
-import { db, storage } from '../firebase.js';
+import { db, storage, app } from '../firebase.js';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { collection, doc, deleteDoc } from 'firebase/firestore'
 import { styles } from '../styles.js';
+import { signOut, getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const Home = ({ navigation, route }) => {
     const email = route.params?.email;
@@ -16,10 +17,20 @@ const Home = ({ navigation, route }) => {
     const [sortOrder, setSortOrder] = useState('asc');
     const [totalValue, setTotalValue] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
+    
+    const auth = getAuth(app);
   
     useEffect(() => {
       fetchData();
     }, [values, route.params, searchTerm]);
+
+    useEffect(() => {
+        onAuthStateChanged(auth, (currentUser) => {
+            if (!currentUser) {
+                handleLogout();
+            }
+        });
+    }, []);
   
     const fetchData = async () => {
       if (values) {
@@ -106,7 +117,7 @@ const Home = ({ navigation, route }) => {
       <TouchableOpacity
         style={styles.item}
         onPress={() => {
-          navigation.navigate("VinylPage", { id: item.id, title: item.title, uid: uid, email: email, updateVinyl: updateVinyl });
+          navigation.navigate("VinylPage", { id: item.id, title: item.title, artist: item.artist, uid: uid, email: email, updateVinyl: updateVinyl });
         }}
       >
         <View>
@@ -159,13 +170,22 @@ const Home = ({ navigation, route }) => {
       setData(sortedData);
       setSortOrder(value);
     };
-  
+
+    const handleLogout = async () => {
+        try {
+          await signOut(auth);
+          navigation.navigate("Login");
+        } catch (error) {
+          console.error("Error logging out:", error);
+        }
+    }
   
     return (
       <View style={styles.container}>
         <Text style={styles.heading}>My Collection</Text>
         <Text>Total value: {totalValue} $</Text>
         <RNPickerSelect
+          style={styles.picker}
           placeholder={{ label: 'Sort by', value: null }}
           onValueChange={(value) => handleSort(value)}
           items={[
@@ -174,8 +194,8 @@ const Home = ({ navigation, route }) => {
             { label: 'Year (Oldest to Newest)', value: 'yearAsc' },
             { label: 'Year (Newest to Oldest)', value: 'yearDesc' },
           ]}
-      value={sortOrder}
-    />
+          value={sortOrder}
+        />
         <TextInput
           style={styles.searchInput}
           placeholder="Search"
@@ -203,7 +223,7 @@ const Home = ({ navigation, route }) => {
           style={styles.button}
           title='Logout'
           onPress={() => {
-            navigation.navigate("Login");
+            handleLogout();
           }}
         ><Text style={styles.buttonText}>Logout</Text>
         </TouchableOpacity>

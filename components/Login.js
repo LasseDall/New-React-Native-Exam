@@ -1,26 +1,21 @@
 import React, { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
-import axios from 'axios';
 import { styles } from '../styles.js';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { app } from '../firebase.js';
 
-const API_KEY = "AIzaSyDMRNaAdpZ4qpu_wKgG2UBBGDb5Qj8wScg";
-const AUTH_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=";
+const auth = getAuth(app);
 
 const Login = ({ navigation, route }) => {
-
+    
     async function login(email, password) {
-      console.log(email, password)
-      try {
-        const response = await axios.post(AUTH_URL + API_KEY, {
-          email: email,
-          password: password,
-          returnSecureToken: true,
-        });
-        const uid = response.data.localId;
-        navigation.navigate("Home", { email: email, uid: uid });
-      } catch (error) {
-        alert("Wrong password or username");
-      }
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const uid = userCredential.user.uid;
+            navigation.navigate("Home", { email: email, uid: uid });
+        } catch (error) {
+            alert("Wrong password or username");
+        }
     }
   
     const [username, setUsername] = useState('');

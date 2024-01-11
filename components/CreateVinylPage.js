@@ -60,7 +60,7 @@ const CreateVinylPage = ({ navigation, route }) => {
             Keyboard.dismiss();
           }}
         >
-        <Text>ADD VINYL TO COLLECTION</Text>
+        <Text style={styles.buttonText}>ADD VINYL TO COLLECTION</Text>
         </TouchableOpacity>
       </View>
     );
